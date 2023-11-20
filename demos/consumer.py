@@ -1,11 +1,6 @@
-import sys
-
-sys.path.append("../flatbuffers/")
 from DigitizerEventListMessage import *
 from kafka import KafkaConsumer
 from kafka.consumer.fetcher import ConsumerRecord
-
-import flatbuffers
 
 TRACE_TOPIC = "trace_in"
 
