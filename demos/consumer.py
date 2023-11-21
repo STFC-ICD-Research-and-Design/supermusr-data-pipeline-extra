@@ -3,6 +3,7 @@ from kafka import KafkaConsumer
 from kafka.consumer.fetcher import ConsumerRecord
 
 TRACE_TOPIC = "trace_in"
+BROKER_ADDRESS = "localhost:9092"
 
 
 def parse_msg(msg: ConsumerRecord) -> DigitizerEventListMessage:
@@ -47,17 +48,17 @@ def display_payload_information(payload: DigitizerEventListMessage):
     print("-------------------------------------------------------------\n")
 
 
-def listen(trace_topic: str):
+def listen(trace_topic: str, broker_address: str):
     """
     Listens on a particular trace topic and attempts to parse any detected messages.
 
     Parameters:
     trace_topic (str): The name of the trace topic.
     """
-    consumer = KafkaConsumer(trace_topic)
+    consumer = KafkaConsumer(trace_topic, bootstrap_servers=broker_address)
     for msg in consumer:
         payload = parse_msg(msg)
         display_payload_information(payload)
 
 
-listen(TRACE_TOPIC)
+listen(TRACE_TOPIC, BROKER_ADDRESS)
