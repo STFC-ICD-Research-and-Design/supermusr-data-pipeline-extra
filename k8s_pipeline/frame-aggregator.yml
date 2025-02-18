@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frame-aggregation
+  namespace: pipeline-musr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frame-aggregator
+  template:
+    metadata:
+      labels:
+        app: frame-aggregator
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: frame-aggregator
+          image: ghcr.io/stfc-icd-research-and-design/supermusr-digitiser-aggregator:32ea120bbb3e85e5f31dfdbdd1205ad919f9d100
+          args:
+            - --broker=130.246.53.247:9092
+            - --group=digitiser-aggregator
+            - --observability-address=127.0.0.1:29090
+            - --input-topic=daq-events
+            - --output-topic=frame-events
+            - --otel-endpoint=http://172.16.113.245:4317/v1/traces
+            - --otel-namespace=pipeline-musr
+            - --frame-ttl-ms=5000
+            - -d4,5,6,7,8,9,10,11
+          env:
+            - name: RUST_LOG
+              value: "debug"
+            - name: OTEL_LEVEL
+              value: "info"
+          resources:
+            limits:
+              memory: 500Mi

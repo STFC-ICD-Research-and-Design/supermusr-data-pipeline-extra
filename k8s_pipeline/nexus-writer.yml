@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-writer
+  namespace: pipeline-musr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-writer
+  template:
+    metadata:
+      labels:
+        app: nexus-writer
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: nexus-writer
+          image: ghcr.io/stfc-icd-research-and-design/supermusr-nexus-writer:32ea120bbb3e85e5f31dfdbdd1205ad919f9d100
+          args:
+            - --broker=130.246.53.247:9092
+            - --consumer-group=nexus-writer
+            - --observability-address=127.0.0.1:29090
+            - --frame-event-topic=frame-events
+            - --control-topic=ics-control-change
+            - --log-topic=ics-metadata
+            - --sample-env-topic=ics-metadata
+            - --alarm-topic=ics-alarms
+            - --cache-run-ttl-ms=2500
+            - --event-list-chunk-size=16384
+            - --otel-endpoint=http://172.16.113.245:4317/v1/traces
+            - --otel-namespace=pipeline-musr
+            - --file-name=/local
+            - --archive-name=/archive/incoming/musr
+          env:
+            - name: RUST_LOG
+              value: "debug"
+            - name: OTEL_LEVEL
+              value: "info"
+          volumeMounts:
+            - name: local
+              mountPath: /local
+            - name: archive
+              mountPath: /archive
+          resources:
+            limits:
+              memory: 350Mi
+      volumes:
+        - name: local
+          hostPath:
+            path: /mnt/nexus-writer-scratch
+        - name: archive
+          persistentVolumeClaim:
+            claimName: archive
