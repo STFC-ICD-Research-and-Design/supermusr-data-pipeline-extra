@@ -1,0 +1,19 @@
+# https://github.com/prometheus-community/helm-charts/tree/prometheus-25.21.0/charts/prometheus
+
+alertmanager:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: true
+
+prometheus-pushgateway:
+  enabled: false
+
+server:
+  extraFlags:
+    - web.enable-lifecycle
+    - web.enable-remote-write-receiver
+
+  persistentVolume:
+    enabled: true
+    size: 10Gi
