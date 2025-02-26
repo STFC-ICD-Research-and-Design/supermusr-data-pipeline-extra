@@ -11,6 +11,8 @@ spec:
       app: nexus-writer
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
       labels:
         app: nexus-writer
     spec:
@@ -46,6 +48,10 @@ spec:
           resources:
             limits:
               memory: 10Gi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
       volumes:
         - name: local
           hostPath:

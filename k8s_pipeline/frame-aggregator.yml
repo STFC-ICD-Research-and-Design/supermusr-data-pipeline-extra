@@ -11,6 +11,8 @@ spec:
       app: frame-aggregator
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
       labels:
         app: frame-aggregator
     spec:
@@ -36,3 +38,7 @@ spec:
           resources:
             limits:
               memory: 500Mi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP

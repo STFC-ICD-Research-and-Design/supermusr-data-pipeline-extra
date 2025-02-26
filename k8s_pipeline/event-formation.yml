@@ -11,6 +11,8 @@ spec:
       app: event-formation
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
       labels:
         app: event-formation
     spec:
@@ -40,3 +42,7 @@ spec:
           resources:
             limits:
               memory: 500Mi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
