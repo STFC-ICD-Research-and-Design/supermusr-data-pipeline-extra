@@ -11,6 +11,8 @@ spec:
       app: event-formation
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
       labels:
         app: event-formation
     spec:
@@ -23,7 +25,6 @@ spec:
             - --consumer-group=trace-to-events
             - --trace-topic=traces-in
             - --event-topic=daq-events
-            - --observability-address=127.0.0.1:29090
             - --otel-endpoint=http://172.16.105.83:4317/v1/traces
             - --otel-namespace=pipeline-musr
             - --polarity=positive
@@ -40,3 +41,7 @@ spec:
           resources:
             limits:
               memory: 500Mi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP

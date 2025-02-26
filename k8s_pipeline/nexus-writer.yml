@@ -11,6 +11,8 @@ spec:
       app: nexus-writer
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
       labels:
         app: nexus-writer
     spec:
@@ -21,7 +23,6 @@ spec:
           args:
             - --broker=130.246.53.247:9092
             - --consumer-group=nexus-writer
-            - --observability-address=127.0.0.1:29090
             - --frame-event-topic=frame-events
             - --control-topic=ics-control-change
             - --log-topic=ics-metadata
@@ -46,6 +47,10 @@ spec:
           resources:
             limits:
               memory: 10Gi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
       volumes:
         - name: local
           hostPath:
