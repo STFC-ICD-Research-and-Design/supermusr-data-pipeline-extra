@@ -45,7 +45,7 @@ spec:
               mountPath: /archive
           resources:
             limits:
-              memory: 350Mi
+              memory: 10Gi
       volumes:
         - name: local
           hostPath:
