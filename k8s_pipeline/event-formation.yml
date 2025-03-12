@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-formation
+  namespace: pipeline-musr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-formation
+  template:
+    metadata:
+      labels:
+        app: event-formation
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: event-formation
+          image: ghcr.io/stfc-icd-research-and-design/supermusr-trace-to-events:32ea120bbb3e85e5f31dfdbdd1205ad919f9d100
+          args:
+            - --broker=130.246.53.247:9092
+            - --consumer-group=trace-to-events
+            - --trace-topic=traces-in
+            - --event-topic=daq-events
+            - --observability-address=127.0.0.1:29090
+            - --otel-endpoint=http://172.16.113.245:4317/v1/traces
+            - --otel-namespace=pipeline-musr
+            - --polarity=positive
+            - --baseline=0
+            - fixed-threshold-discriminator
+            - --threshold=2200
+            - --duration=1
+            - --cool-off=0
+          env:
+            - name: RUST_LOG
+              value: "debug"
+            - name: OTEL_LEVEL
+              value: "none,trace_to_events=info,trace_to_events::channels=warn,trace_to_events::pulse_detection=warn"
+          resources:
+            limits:
+              memory: 500Mi
