@@ -29,7 +29,7 @@ spec:
             - --alarm-topic=ics-alarms
             - --cache-run-ttl-ms=2500
             - --event-list-chunk-size=16384
-            - --otel-endpoint=http://172.16.113.245:4317/v1/traces
+            - --otel-endpoint=http://172.16.105.83:4317/v1/traces
             - --otel-namespace=pipeline-musr
             - --file-name=/local
             - --archive-name=/archive/incoming/musr
