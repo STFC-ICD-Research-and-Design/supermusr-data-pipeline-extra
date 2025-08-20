@@ -11,6 +11,8 @@ spec:
       app: frame-aggregator
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
       labels:
         app: frame-aggregator
     spec:
@@ -21,7 +23,6 @@ spec:
           args:
             - --broker=130.246.53.247:9092
             - --group=digitiser-aggregator
-            - --observability-address=127.0.0.1:29090
             - --input-topic=daq-events
             - --output-topic=frame-events
             - --otel-endpoint=http://172.16.105.83:4317/v1/traces
@@ -36,3 +37,7 @@ spec:
           resources:
             limits:
               memory: 500Mi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
