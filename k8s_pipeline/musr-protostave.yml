@@ -1,0 +1,236 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-formation-protostave
+  namespace: digital-muon-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-formation-protostave
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      labels:
+        app: event-formation-protostave
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: event-formation
+          image: ghcr.io/isisneutronmuon/digital-muon-trace-to-events:3fe5671f8e10bfdea781c5d6e695c2b1ee456251
+          args:
+            - --broker=130.246.53.247:9092
+            - --consumer-group=trace-to-events
+            - --trace-topic=traces-in
+            - --event-topic=daq-events
+            - --otel-endpoint=http://172.16.105.83:4317/v1/traces
+            - --otel-namespace=pipeline-musr-protostave
+            - --polarity=positive
+            - --baseline=0
+            - fixed-threshold-discriminator
+            - --threshold=2200
+            - --duration=1
+            - --cool-off=0
+          env:
+            - name: RUST_LOG
+              value: "info"
+            - name: OTEL_LEVEL
+              value: "none,trace_to_events=info,trace_to_events::channels=warn,trace_to_events::pulse_detection=warn"
+          resources:
+            limits:
+              memory: 500Mi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frame-aggregation-protostave
+  namespace: digital-muon-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frame-aggregator-protostave
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      labels:
+        app: frame-aggregator-protostave
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: frame-aggregator
+          image: ghcr.io/isisneutronmuon/digital-muon-digitiser-aggregator:3fe5671f8e10bfdea781c5d6e695c2b1ee456251
+          args:
+            - --broker=130.246.53.247:9092
+            - --group=digitiser-aggregator
+            - --input-topic=daq-events
+            - --output-topic=frame-events
+            - --otel-endpoint=http://172.16.105.83:4317/v1/traces
+            - --otel-namespace=pipeline-musr-protostave
+            - --frame-ttl-ms=5000
+            - -d4,5,6,7,8,9,10,11
+          env:
+            - name: RUST_LOG
+              value: "info"
+            - name: OTEL_LEVEL
+              value: "info"
+          resources:
+            limits:
+              memory: 500Mi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-writer-protostave
+  namespace: digital-muon-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-writer-protostave
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      labels:
+        app: nexus-writer-protostave
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: nexus-writer
+          image: ghcr.io/isisneutronmuon/digital-muon-nexus-writer:ec298582b40ad98dc251441cc58e914c47154066
+          args:
+            - --broker=130.246.53.247:9092
+            - --consumer-group=nexus-writer
+            - --frame-event-topic=frame-events
+            - --control-topic=ics-control-change
+            - --log-topic=ics-metadata
+            - --sample-env-topic=ics-metadata
+            - --alarm-topic=ics-alarms
+            - --cache-run-ttl-ms=2500
+            - --event-list-chunk-size=16384
+            - --otel-endpoint=http://172.16.105.83:4317/v1/traces
+            - --otel-namespace=pipeline-musr-protostave
+            - --local-path=/local
+            - --archive-path=/archive/incoming/musr-protostave
+          env:
+            - name: RUST_LOG
+              value: "info"
+            - name: OTEL_LEVEL
+              value: "info"
+          volumeMounts:
+            - name: local
+              mountPath: /local
+            - name: archive
+              mountPath: /archive
+          resources:
+            limits:
+              memory: 10Gi
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+      volumes:
+        - name: local
+          hostPath:
+            path: /mnt/nexus-writer-scratch-protostave
+        - name: archive
+          persistentVolumeClaim:
+            claimName: archive
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trace-viewer-protostave
+  namespace: digital-muon-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trace-viewer-protostave
+  template:
+    metadata:
+      labels:
+        app: trace-viewer-protostave
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: trace-viewer
+          image: ghcr.io/isisneutronmuon/digital-muon-trace-viewer:6ac6787ae88e016990003c2d45f936d8d5c5781e
+          args:
+            - --broker=130.246.53.247:9092
+            - --consumer-group=trace-viewer-protostave-0
+            - --trace-topic=traces-in
+            - --digitiser-event-topic=daq-events
+            - --broker-name="MuSR (protostave)"
+            - --public-url=http://ndw2982.isis.cclrc.ac.uk/trace-viewer-protostave
+          env:
+            - name: RUST_LOG
+              value: "debug"
+          resources:
+            limits:
+              memory: 500Mi
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trace-viewer-protostave
+  namespace: digital-muon-pipeline
+spec:
+  selector:
+    app: trace-viewer-protostave
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: trace-viewer-http-protostave
+  namespace: digital-muon-pipeline
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`ndw2982.isis.cclrc.ac.uk`) && PathPrefix(`/trace-viewer`)
+      middlewares:
+        - name: strip-trace-viewer-prefix-protostave
+      services:
+        - name: trace-viewer-protostave
+          port: 3000
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-trace-viewer-prefix-protostave
+  namespace: digital-muon-pipeline
+spec:
+  stripPrefix:
+    prefixes:
+      - /trace-viewer-protostave
