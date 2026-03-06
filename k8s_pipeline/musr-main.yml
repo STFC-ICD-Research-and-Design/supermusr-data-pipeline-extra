@@ -177,7 +177,7 @@ spec:
             - --trace-topic=traces-in
             - --digitiser-event-topic=daq-events
             - --broker-name="MuSR (main spectrometer)"
-            - --public-url=http://ndw2982.isis.cclrc.ac.uk/trace-viewer
+            - --public-url=https://ndw2982.isis.cclrc.ac.uk/trace-viewer
           env:
             - name: RUST_LOG
               value: "debug"

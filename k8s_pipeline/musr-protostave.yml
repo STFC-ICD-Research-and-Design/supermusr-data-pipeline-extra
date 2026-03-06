@@ -177,7 +177,7 @@ spec:
             - --trace-topic=super-traces-in
             - --digitiser-event-topic=super-daq-events
             - --broker-name="MuSR (protostave)"
-            - --public-url=http://ndw2982.isis.cclrc.ac.uk/trace-viewer-protostave
+            - --public-url=https://ndw2982.isis.cclrc.ac.uk/trace-viewer-protostave
           env:
             - name: RUST_LOG
               value: "debug"
@@ -217,7 +217,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`ndw2982.isis.cclrc.ac.uk`) && PathPrefix(`/trace-viewer`)
+      match: Host(`ndw2982.isis.cclrc.ac.uk`) && PathPrefix(`/trace-viewer-protostave`)
       middlewares:
         - name: strip-trace-viewer-prefix-protostave
       services:
