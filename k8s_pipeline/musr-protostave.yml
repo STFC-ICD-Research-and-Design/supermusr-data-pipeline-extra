@@ -23,8 +23,8 @@ spec:
           args:
             - --broker=130.246.53.247:9092
             - --consumer-group=trace-to-events
-            - --trace-topic=traces-in
-            - --event-topic=daq-events
+            - --trace-topic=super-traces-in
+            - --event-topic=super-daq-events
             - --otel-endpoint=http://172.16.105.83:4317/v1/traces
             - --otel-namespace=pipeline-musr-protostave
             - --polarity=positive
@@ -72,7 +72,7 @@ spec:
             - --broker=130.246.53.247:9092
             - --group=digitiser-aggregator
             - --input-topic=daq-events
-            - --output-topic=frame-events
+            - --output-topic=super-frame-events
             - --otel-endpoint=http://172.16.105.83:4317/v1/traces
             - --otel-namespace=pipeline-musr-protostave
             - --frame-ttl-ms=5000
@@ -115,7 +115,7 @@ spec:
           args:
             - --broker=130.246.53.247:9092
             - --consumer-group=nexus-writer
-            - --frame-event-topic=frame-events
+            - --frame-event-topic=super-frame-events
             - --control-topic=ics-control-change
             - --log-topic=ics-metadata
             - --sample-env-topic=ics-metadata
@@ -174,8 +174,8 @@ spec:
           args:
             - --broker=130.246.53.247:9092
             - --consumer-group=trace-viewer-protostave-0
-            - --trace-topic=traces-in
-            - --digitiser-event-topic=daq-events
+            - --trace-topic=super-traces-in
+            - --digitiser-event-topic=super-daq-events
             - --broker-name="MuSR (protostave)"
             - --public-url=http://ndw2982.isis.cclrc.ac.uk/trace-viewer-protostave
           env:
